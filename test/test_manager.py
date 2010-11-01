@@ -245,6 +245,7 @@ class TestFloat(utils.QtileTests):
         #change layout (should still be floating)
         self.c.nextlayout()
         assert self.c.window.info()['float_info']['floating'] == True
+        
     def test_move_floating(self):
         self.testXeyes()
         self.testWindow("one")
@@ -266,6 +267,8 @@ class TestFloat(utils.QtileTests):
         self.c.nextlayout()
         assert self.c.window.info()['x'] == 10
         assert self.c.window.info()['y'] == 20
+        assert self.c.window.info()['width'] == 798
+        assert self.c.window.info()['height'] == 578
         
 class uRandr(utils.QtileTests):
     config = TestConfig()
