@@ -102,6 +102,7 @@ class _Window(command.CommandObject):
         self.state = "normal"
         self.window_type = "normal"
         g = self.window.get_geometry()
+        self._minimized = False
         self._float_info = {
             'floating': False,
             'x': g.x, 'y': g.y, 
@@ -172,8 +173,15 @@ class _Window(command.CommandObject):
             width = self.width,
             height = self.height,
             id = self.window.wid,
-            float_info = self._float_info
+            float_info = self._float_info,
+            minimized = self._minimized
         )
+
+    def managed(self):
+        """
+        If window is floating, on top, minimized, maximized, then don't let the layout managed it.
+        """
+        return not self.floating and not self.minimized
 
     def setState(self, val):
         if val in self.POSSIBLE_STATES:
@@ -181,6 +189,14 @@ class _Window(command.CommandObject):
 
     def getState(self, val):
         return self.state == val
+
+    def getMinimized(self):
+        return self._minimized
+
+    def setMinimized(self, val):
+        assert isinstance(val, bool)
+        self._minimized = val
+    minimized = property(getMinimized, setMinimized)
 
     def getFloating(self):
         return self._float_info.get('floating')
@@ -511,6 +527,7 @@ class Window(_Window):
         return s
 
     def movefloating(self, x, y):
+        assert self.getFloating()
         self._float_info['x'] += x
         self._float_info['y'] += y
         self.place(self._float_info['x'],
@@ -524,6 +541,10 @@ class Window(_Window):
 
     def togglefloating(self):
         self._float_info['floating'] = not self._float_info['floating']
+        self.group.layoutAll()
+
+    def toggleMinimize(self):
+        self.minimized = not self.minimized
         self.group.layoutAll()
 
     def togroup(self, groupName):
@@ -659,6 +680,9 @@ class Window(_Window):
                 togroup("a")
         """
         self.togroup(groupName)
+
+    def cmd_toggle_minimize(self):
+        self.toggleMinimize()
 
     def cmd_move_floating(self, x, y):
         self.movefloating(x, y)

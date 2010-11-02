@@ -229,6 +229,33 @@ class uSingle(utils.QtileTests):
         assert self.c.window.match(wname="xeyes")
         assert not self.c.window.match(wname="nonexistent")
 
+class TestMinimize(utils.QtileTests):
+    config = TestConfig()
+
+    def test_toggle_minimize(self):
+        self.testWindow("one")
+        self.c.nextlayout()
+        self.testXeyes()
+        self.testXterm()
+        #one = self.testXeyes()
+        #two = self.testXeyes()
+        #assert self.c.window.info()['name'] != 'xterm'
+        assert self.c.window.info()['minimized'] == False
+        assert self.c.window.info()['width'] == 398
+        assert self.c.window.info()['height'] == 578
+        self.c.layout.previous()
+        #assert self.c.window.info()['name'] != 'xterm'
+        assert self.c.window.info()['width'] == 398
+        assert self.c.window.info()['height'] == 578
+        self.c.window.toggle_minimize()
+        assert self.c.window.info()['minimized'] == True
+        assert self.c.window.info()['width'] == 398
+        assert self.c.window.info()['height'] == 578
+        self.c.layout.previous()
+        assert self.c.window.info()['minimized'] == False
+        assert self.c.window.info()['width'] == 398
+        assert self.c.window.info()['height'] == 578
+
 class TestFloat(utils.QtileTests):
     config = TestConfig()
 
@@ -551,6 +578,7 @@ tests = [
         uClientNewStatic(),
         uClientNewToGroup(),
         TestFloat(),
+        TestMinimize(),
     ],
     utils.Xephyr(xinerama=False, randr=True), [
         uRandr(),
