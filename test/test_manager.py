@@ -297,6 +297,7 @@ class TestFloat(utils.QtileTests):
         assert self.c.window.info()['width'] == 798
         assert self.c.window.info()['height'] == 578
         
+
 class uRandr(utils.QtileTests):
     config = TestConfig()
     def test_screens(self):
@@ -312,7 +313,9 @@ class uRandr(utils.QtileTests):
                 "--output", "default",
                 "-display", utils.DISPLAY,
                 "--rotate", "left"
-            ]
+            ],
+            stderr = subprocess.PIPE,
+            stdout = subprocess.PIPE
         )
         s = self.c.screens()[0]
         assert s["height"] == width
