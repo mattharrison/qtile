@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import operator, functools
+import operator, functools, os
 import xcbq
 
 def lget(o, v):
@@ -129,5 +129,40 @@ def rgb(x):
             raise ValueError("RGB specifier must be 6 characters long.")
         return rgb([int(i, 16) for i in (x[0:2], x[2:4], x[4:6])])
     raise ValueError("Invalid RGB specifier.")
+
+
+
+class Data:
+    def __init__(self, name):
+        m = __import__(name)
+        dirname, _ = os.path.split(m.__file__)
+        self.dirname = os.path.abspath(dirname)
+
+    def path(self, path):
+        """
+            Returns a path to the package data housed at 'path' under this
+            module.Path can be a path to a file, or to a directory.
+
+            This function will raise ValueError if the path does not exist.
+        """
+        fullpath = os.path.join(self.dirname, path)
+        if not os.path.exists(fullpath):
+            raise ValueError, "dataPath: %s does not exist."%fullpath
+        return fullpath
+
+data = Data(__name__)
+
+
+def scrub_to_utf8(text):
+    if not text:
+        return ""
+    elif isinstance(text, unicode):
+        return text
+    else:
+        try:
+            return text.decode("utf-8")
+        except UnicodeDecodeError:
+            # We don't know the provenance of this string - so we scrub it to ASCII.
+            return "".join(i for i in text if 31 < ord(i) <  127)
 
 

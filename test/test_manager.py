@@ -28,6 +28,7 @@ class TestConfig:
             libqtile.command._Call([("layout", None)], "down")
         ),
     ]
+    mouse = []
     screens = [libqtile.manager.Screen(
             bottom=libqtile.bar.Bar(
                         [
@@ -62,6 +63,7 @@ class BareConfig:
             libqtile.command._Call([("layout", None)], "down")
         ),
     ]
+    mouse = []
     screens = [libqtile.manager.Screen()]
     main = None
 
@@ -92,8 +94,8 @@ class uMultiScreen(utils.QtileTests):
         assert self.c.window.info()["name"] == "one"
 
 
-    
-        
+
+
     def test_togroup(self):
         self.testWindow("one")
         libpry.raises("no such group", self.c.window.togroup, "nonexistent")
@@ -112,7 +114,7 @@ class uMultiScreen(utils.QtileTests):
         d = self.c.screen[0].info()
         assert d["width"] == d["height"] == 100
         assert d["x"] == d["y"] == 10
-        
+
 
 class uMinimal(utils.QtileTests):
     config = BareConfig()
@@ -283,7 +285,7 @@ class TestFloat(utils.QtileTests):
         assert self.c.window.info()['y'] == 0
         self.c.window.toggle_floating()
         assert self.c.window.info()['float_info']['floating'] == True
-        
+
         self.c.window.move_floating(10, 20)
         assert self.c.window.info()['width'] == 798
         assert self.c.window.info()['height'] == 578
@@ -294,9 +296,7 @@ class TestFloat(utils.QtileTests):
         self.c.nextlayout()
         assert self.c.window.info()['x'] == 10
         assert self.c.window.info()['y'] == 20
-        assert self.c.window.info()['width'] == 798
-        assert self.c.window.info()['height'] == 578
-        
+
 
 class uRandr(utils.QtileTests):
     config = TestConfig()
@@ -516,6 +516,7 @@ class _Config:
             libqtile.command._Call([("layout", None)], "down")
         ),
     ]
+    mouse = []
     screens = [libqtile.manager.Screen(
             bottom=libqtile.bar.Bar(
                         [
@@ -590,4 +591,3 @@ tests = [
     uLog(),
     uScreenDimensions(),
 ]
-
