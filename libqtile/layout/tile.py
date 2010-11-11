@@ -81,13 +81,22 @@ class Tile(Layout):
         return self.focused
 
     def configure(self, c):
+        print "CONF", c
+        if not c.managed():
+            print "SKIP MANAGED!"
+            return
+        managed_clients = [x for x in self.clients if x.managed()]
+        managed_masters = [x for x in self.master_windows if x.managed()]
+        managed_slaves = [x for x in self.slave_windows if x.managed()]
         screenWidth = self.group.screen.dwidth
         screenHeight = self.group.screen.dheight
         x = y = w = h = 0
         borderWidth = self.border_width
         if self.clients and c in self.clients:
-            pos = self.clients.index(c)
-            if c in self.master_windows:
+            #pos = self.clients.index(c)
+            pos = managed_clients.index(c)
+            #if c in self.master_windows:
+            if c in managed_masters:
                 w = (int(screenWidth*self.ratio) \
                          if len(self.slave_windows) or not self.expand \
                          else screenWidth)
@@ -98,7 +107,8 @@ class Tile(Layout):
                 w = screenWidth-int(screenWidth*self.ratio)
                 h = screenHeight/(len(self.slave_windows))
                 x = self.group.screen.dx + int(screenWidth*self.ratio)
-                y = self.group.screen.dy + self.clients[self.master:].index(c)*h
+                #y = self.group.screen.dy + self.clients[self.master:].index(c)*h
+                y = self.group.screen.dy + managed_slaves.index(c)*h
             if c is self.focused:
                 bc = self.group.qtile.colorPixel(self.border_focus)
             else:

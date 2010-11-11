@@ -197,6 +197,21 @@ class _Window(command.CommandObject):
     def setMinimized(self, val):
         assert isinstance(val, bool)
         self._minimized = val
+        print "MIN TO ", val
+        print "GROUP", self.group
+        if self._minimized:
+            #self.group.windows.remove(self)
+            #self.group.layout.remove(self)
+            self.hide()
+            #
+        else:
+            #self.group.windows.add(self)
+            #self.group.layout.add(self)
+            self.unhide()
+            #
+        self.notify()
+        print "AFTER", self.group
+        self.group.layoutAll()
     minimized = property(getMinimized, setMinimized)
 
     def getFloating(self):
@@ -572,7 +587,6 @@ class Window(_Window):
 
     def toggleMinimize(self):
         self.minimized = not self.minimized
-        self.group.layoutAll()
 
     def togroup(self, groupName):
         """
