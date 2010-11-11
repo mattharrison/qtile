@@ -18,7 +18,7 @@ class GBConfig:
         libqtile.manager.Screen(
             top = libqtile.bar.Bar(
                     [
-                        libqtile.widget.CPUGraph(),
+                        libqtile.widget.CPUGraph(width=libqtile.bar.STRETCH, type="linefill"),
                         libqtile.widget.MemoryGraph(),
                         libqtile.widget.SwapGraph(),
                         libqtile.widget.TextBox("text", background="333333"),
@@ -102,8 +102,7 @@ class uWidgets(utils.QtileTests):
         assert self.c.widget["text"].get() == s
         self.c.group["Pppy"].toscreen()
         self.c.widget["text"].set_font(fontsize=12)
-        time.sleep(1)
-
+        time.sleep(3)
 
     def test_textbox_errors(self):
         self.c.widget["text"].update(None)
@@ -179,7 +178,11 @@ class uBarGeometry(utils.QtileTests):
             DWidget(None, libqtile.bar.STRETCH),
             DWidget(10, libqtile.bar.CALCULATED),
         ]
-        libpry.raises("more than one stretch", b._resize, 100, l)
+        b._resize(100, l)
+        assert wd(l) == [10, 40, 40, 10]
+
+        b._resize(101, l)
+        assert wd(l) == [10, 40, 41, 10]
 
         l = [
             DWidget(10, libqtile.bar.CALCULATED)

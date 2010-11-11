@@ -265,16 +265,20 @@ class TestFloat(utils.QtileTests):
         self.testXeyes()
         self.testWindow("one")
         self.c.window.toggle_floating()
-        assert self.c.window.info()['float_info']['floating'] == True
+        assert self.c.window.info()['floating'] == True
         self.c.window.toggle_floating()
-        assert self.c.window.info()['float_info']['floating'] == False
+        assert self.c.window.info()['floating'] == False
         self.c.window.toggle_floating()
-        assert self.c.window.info()['float_info']['floating'] == True
+        assert self.c.window.info()['floating'] == True
 
         #change layout (should still be floating)
         self.c.nextlayout()
+<<<<<<< HEAD
         assert self.c.window.info()['float_info']['floating'] == True
         
+=======
+        assert self.c.window.info()['floating'] == True
+>>>>>>> master
     def test_move_floating(self):
         self.testXeyes()
         self.testWindow("one")
@@ -284,7 +288,7 @@ class TestFloat(utils.QtileTests):
         assert self.c.window.info()['x'] == 0
         assert self.c.window.info()['y'] == 0
         self.c.window.toggle_floating()
-        assert self.c.window.info()['float_info']['floating'] == True
+        assert self.c.window.info()['floating'] == True
 
         self.c.window.move_floating(10, 20)
         assert self.c.window.info()['width'] == 798

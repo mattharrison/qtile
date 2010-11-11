@@ -1,4 +1,5 @@
-import collections, time
+import time
+import cairo
 
 from . import base
 from .. import manager, bar, hook, utils
@@ -10,51 +11,93 @@ __all__ = [
 ]
 
 class _Graph(base._Widget):
-    ticks = 0
     fixed_upper_bound = False
     defaults = manager.Defaults(
-        ("foreground", "0000ff", "Bars color"),
+        ("graph_color", "18BAEB", "Graph color"),
+        ("fill_color", "1667EB.3", "Fill color for linefill graph"),
         ("background", "000000", "Widget background"),
         ("border_color", "215578", "Widget border color"),
-        ("border_width", 2, "Widget background"),
+        ("border_width", 1, "Widget background"),
         ("margin_x", 3, "Margin X"),
         ("margin_y", 3, "Margin Y"),
-        ("bars", 32, "Count of graph bars"),
-        ("bar_width", 1, "Width of single bar"),
+        ("samples", 100, "Count of graph samples."),
         ("frequency", 0.5, "Update frequency in seconds"),
+        ("type", "linefill", "'box', 'line', 'linefill'"),
+        ("line_width", 3, "Line width"),
     )
 
-    def __init__(self, **config):
-        base._Widget.__init__(self, bar.CALCULATED, **config)
-        self.values = collections.deque([0]*self.bars)
+    def __init__(self, width = 100, **config):
+        base._Widget.__init__(self, width, **config)
+        self.values = [0]*self.samples
         self.lasttick = 0
         self.maxvalue = 0
 
-    def calculate_width(self):
-        return self.bars*self.bar_width + self.border_width*2 + self.margin_x*2
+    @property
+    def graphwidth(self):
+        return self.width - self.border_width * 2 - self.margin_x * 2
+
+    def draw_box(self, x, y, step, values):
+        for val in values:
+            self.drawer.fillrect(x, y-val, step, val, self.graph_color)
+            x += step 
+
+    def draw_line(self, x, y, step, values):
+        self.drawer.ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        self.drawer.set_source_rgb(self.graph_color)
+        self.drawer.ctx.set_line_width(self.line_width)
+        self.drawer.ctx.move_to(x, y)
+        for val in values:
+            self.drawer.ctx.line_to(x, y-val)
+            x += step 
+        self.drawer.ctx.stroke()
+
+    def draw_linefill(self, x, y, step, values):
+        self.drawer.ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        self.drawer.set_source_rgb(self.graph_color)
+        self.drawer.ctx.set_line_width(self.line_width)
+        self.drawer.ctx.move_to(x, y)
+        current = x + step
+        for val in values:
+            self.drawer.ctx.line_to(current, y-val + self.line_width/2)
+            current += step 
+        self.drawer.ctx.stroke_preserve()
+        self.drawer.ctx.line_to(current, y + self.line_width/2)
+        self.drawer.ctx.line_to(x, y + self.line_width/2)
+        self.drawer.set_source_rgb(self.fill_color)
+        self.drawer.ctx.fill()
 
     def draw(self):
         self.drawer.clear(self.background)
         if self.border_width:
-            self.drawer.ctx.set_source_rgb(*utils.rgb(self.border_color))
-            self.drawer.rounded_rectangle(self.margin_x, self.margin_y,
-                self.bars*self.bar_width + self.border_width*2,
+            self.drawer.set_source_rgb(self.border_color)
+            self.drawer.ctx.set_line_width(self.border_width)
+            self.drawer.ctx.rectangle(
+                self.margin_x, self.margin_y,
+                self.graphwidth + self.border_width*2,
                 self.bar.height - self.margin_y*2,
-                self.border_width)
-        x = self.margin_x+self.border_width
-        y = self.margin_y+self.border_width
-        w = self.bar_width
+            )
+            self.drawer.ctx.stroke()
         h = self.bar.height - self.margin_y*2 - self.border_width*2
+        x = self.margin_x+self.border_width
+        y = self.margin_y+self.border_width + h
+        step = self.graphwidth/float(self.samples)
         k = 1.0/(self.maxvalue or 1)
-        for val in self.values:
-            ch = int(round(h*val*k))
-            self.drawer.fillrect(x, y+h-ch, w, ch, self.foreground)
-            x += w
+        scaled = [h * val * k for val in reversed(self.values)]
+
+        if self.type == "box":
+            self.draw_box(x, y, step, scaled)
+        elif self.type == "line":
+            self.draw_line(x, y, step, scaled)
+        elif self.type == "linefill":
+            self.draw_linefill(x, y, step, scaled)
+        else:
+            raise ValueError("Unknown graph type: %s."%self.type)
+
         self.drawer.draw(self.offset, self.width)
 
     def push(self, value):
-        self.values.append(value)
-        self.values.popleft()
+        self.values.insert(0, value)
+        self.values.pop()
         if not self.fixed_upper_bound:
             self.maxvalue = max(self.values)
         self.draw()
