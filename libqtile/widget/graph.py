@@ -8,6 +8,7 @@ __all__ = [
     'CPUGraph',
     'MemoryGraph',
     'SwapGraph',
+    'IOWaitGraph'
 ]
 
 class _Graph(base._Widget):
@@ -177,3 +178,19 @@ class SwapGraph(_Graph):
     def update_graph(self):
         val = self._getvalues()
         self.push(val['SwapTotal'] - val['SwapFree'] - val['SwapCached'])
+
+class IOWaitGraph(CPUGraph):
+    def _getvalues(self):
+        val = {}
+        with open('/proc/stat') as file:
+            all_cpus = next(file)
+            name, user, nice, sys, idle, iowait, tail = all_cpus.split(None, 6)
+            val['IOWait'] = float(iowait)
+        return val
+
+    def update_graph(self):
+        old_val = self.oldvalues
+        new_val = self._getvalues()
+        self.push(new_val['IOWait'])
+        self.oldvalues = new_val
+    

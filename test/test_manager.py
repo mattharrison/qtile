@@ -233,6 +233,22 @@ class uSingle(utils.QtileTests):
         assert self.c.window.match(wname="xeyes")
         assert not self.c.window.match(wname="nonexistent")
 
+class CornerCases(utils.QtileTests):
+    config = TestConfig()
+    def test_max_konsole(self):
+        # change to 2 col stack
+        self.c.nextlayout()
+        assert len(self.c.layout.info()["stacks"]) == 2
+        self.testXeyes()
+        self.testCmd('konsole')
+
+        # send full screen command
+        print "BEFORE", self.c.window.info()
+        self.c.simulate_keypress([], 'm')
+        self.c.simulate_keypress(['control', 'shift'], 'F11')
+        print "AFTER", self.c.window.info()
+        
+
 class TestFloat(utils.QtileTests):
     config = TestConfig()
 
@@ -501,6 +517,41 @@ class TestFloat(utils.QtileTests):
         assert self.c.window.info()['y'] == 20
 
 
+class TestMoveFloat(utils.QtileTests):
+    config = TestConfig()
+
+    def test_move_across_screen(self):
+        # make sure there's 2 winodws
+        
+        assert self.c.screen.info()["index"] == 0
+        # move to 2 col
+        self.c.nextlayout()
+        self.c.to_screen(1)
+        self.c.nextlayout()
+        assert self.c.screen.info()["index"] == 1
+        self.testXeyes()
+        self.c.to_screen(0)
+
+        self.testXclock()
+        #self.testWindow("one")
+        assert self.c.window.info()['width'] == 164
+        assert self.c.window.info()['height'] == 164
+        print self.c.screens()
+        assert len(self.c.screens())
+
+        # try to get it in the other window
+        self.c.window.move_floating(500, 20)
+        assert self.c.window.info()['x'] == 500
+        assert self.c.window.info()['y'] == 20
+        #time.sleep(0.5)
+        self.c.window.move_floating(500, 20)
+        assert self.c.window.info()['x'] == 1000
+        assert self.c.window.info()['y'] == 40
+        #time.sleep(1.5)
+        #raw_input("wait")
+        # !!!
+        
+        
 class uRandr(utils.QtileTests):
     config = TestConfig()
     def test_screens(self):
@@ -572,6 +623,7 @@ class uQtile(utils.QtileTests):
         assert info["focus"] == "two"
 
     def test_unmap(self):
+        print "\n\nUNMAP"
         one = self.testWindow("one")
         two = self.testWindow("two")
         three = self.testWindow("three")
@@ -580,7 +632,7 @@ class uQtile(utils.QtileTests):
 
         assert len(self.c.windows()) == 3
         self.kill(three)
-
+        print "BEFORE"
         assert len(self.c.windows()) == 2
         info = self.c.groups()["a"]
         assert info["focus"] == "two"
@@ -776,7 +828,8 @@ tests = [
     utils.Xephyr(xinerama=True), [
         uQtile("bare", BareConfig),
         uQtile("complex", TestConfig),
-        uMultiScreen()
+        uMultiScreen(),
+        
     ],
     utils.Xephyr(xinerama=False), [
         uSingle(),
@@ -786,9 +839,14 @@ tests = [
         uClientNewStatic(),
         uClientNewToGroup(),
         TestFloat(),
+        CornerCases()
     ],
     utils.Xephyr(xinerama=False, randr=True), [
         uRandr(),
+
+    ],
+    utils.Xephyr(xinerama=True, randr=True), [
+        TestMoveFloat()
     ],
     uKey(),
     uLog(),

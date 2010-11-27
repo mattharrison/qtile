@@ -102,6 +102,7 @@ class _Window(command.CommandObject):
         self.window, self.qtile = window, qtile
         self.hidden = True
         window.set_attribute(eventmask=self._windowMask)
+        # 
         self.x, self.y, self.width, self.height = None, None, None, None
         self.borderwidth = 0
         self.bordercolor = None
@@ -319,9 +320,20 @@ class _Window(command.CommandObject):
         # shift by screen.x (y) so they appear on the right screen
         try:
             if self.group:
+                screen = self.group.screen
+                print "BEFORE self.x %s, screen x:%s screen width:%s" %(self.x, screen.x, screen.width)
+                # if self.x < 0:
+                #     # assume floated to left ok
+                #     pass
+                # elif self.x > screen.x + screen.width:
+                #     # to right of screen, pull back
+                #     self.x -= screen.width
+                #     x = self.x
+                #     print "CHANGED self.x %s, screen x:%s screen width:%s" %(self.x, screen.x, screen.width)
                 if self.x < self.group.screen.x:
                     self.x += self.group.screen.x
                     x = self.x
+                
         except AttributeError, e:
             pass
         kwarg = dict(
